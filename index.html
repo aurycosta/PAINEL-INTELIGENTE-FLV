@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel FLV Inteligente</title>
+    <title>Painel FLV Inteligente Pro</title>
     <style>
         :root {
             --primary: #2ecc71;
@@ -80,7 +80,7 @@
         .btn-del { background-color: var(--danger); }
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
-        /* Grid - PADRONIZAÇÃO TOTAL */
+        /* Grid - Padronizado */
         #grid-produtos {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -94,26 +94,26 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex;
-            flex-direction: column; /* Organiza itens em coluna */
-            height: 420px; /* ALTURA FIXA PARA TODOS OS CARDS */
+            flex-direction: column;
+            height: 420px;
             box-sizing: border-box;
         }
 
         .card img {
             width: 100%;
-            height: 160px; /* Altura fixa da imagem */
+            height: 160px;
             object-fit: contain;
             background-color: #fcfcfc;
             border-radius: 8px;
             margin-bottom: 12px;
-            flex-shrink: 0; /* Impede a imagem de diminuir */
+            flex-shrink: 0;
         }
 
         .card-info {
             display: flex;
             flex-direction: column;
-            flex-grow: 1; /* Faz esta parte ocupar o espaço restante */
-            justify-content: space-between; /* Empurra os códigos para o rodapé */
+            flex-grow: 1;
+            justify-content: space-between;
         }
 
         .card h3 {
@@ -121,17 +121,16 @@
             font-size: 1.05rem;
             color: var(--dark);
             text-transform: uppercase;
-            /* Limita a 2 linhas e corta com reticências se for maior */
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            height: 2.6em; /* Altura fixa para a descrição */
+            height: 2.6em;
             line-height: 1.3em;
         }
 
         .codigo-balanca {
-            font-size: 32px; /* Destaque maior */
+            font-size: 32px;
             font-weight: 800;
             color: var(--secondary);
             background: #f0fff4;
@@ -156,7 +155,6 @@
             font-weight: bold;
         }
 
-        /* Overlay e Modais */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999; backdrop-filter: blur(3px); }
         #modal, #modal-del { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; z-index: 1000; width: 90%; max-width: 400px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
@@ -167,7 +165,7 @@
 <div class="container">
     <div class="header-wrapper">
         <div class="logo-container"><img src="logo.jpg" alt="Logo"></div>
-        <header><h1 style="margin: 0; color: var(--dark); font-size: 1.5rem;">PAINEL INTELIGENTE FLV</h1></header>
+        <header><h1 style="margin: 0; color: var(--dark); font-size: 1.5rem;">PAINEL INTELIGENTE</h1></header>
         <div style="width: 60px;"></div>
     </div>
 
@@ -248,7 +246,12 @@
         if(!desc || !bal) return alert("Erro: Descrição e Balança são obrigatórios.");
         if(todosProdutos.find(p => p.descricao.toUpperCase() === desc || p.codigoBalanca === bal)) return alert("Erro: Produto já cadastrado.");
 
-        await set(push(produtosRef), { descricao: desc, codigoInterno: int, codigoBalanca: bal, imagem: img || 'https://via.placeholder.com/150?text=FLV' });
+        await set(push(produtosRef), { 
+            descricao: desc, 
+            codigoInterno: int, 
+            codigoBalanca: bal, 
+            imagem: img || 'https://via.placeholder.com/150?text=FLV' 
+        });
         fecharModais();
         document.querySelectorAll('#modal input').forEach(i => i.value = "");
     };
@@ -261,8 +264,16 @@
         if(key) { await remove(ref(db, `produtos/${key}`)); fecharModais(); } else alert("Não encontrado.");
     };
 
+    // --- LÓGICA DE ORDENAÇÃO ALFABÉTICA ---
     onValue(produtosRef, (snap) => {
-        todosProdutos = snap.val() ? Object.values(snap.val()) : [];
+        const data = snap.val();
+        if (data) {
+            todosProdutos = Object.values(data);
+            // Ordena por ordem alfabética (A-Z) antes de renderizar
+            todosProdutos.sort((a, b) => a.descricao.localeCompare(b.descricao));
+        } else {
+            todosProdutos = [];
+        }
         renderizar(todosProdutos);
     });
 
@@ -287,7 +298,9 @@
 
     document.getElementById('searchInput').oninput = (e) => {
         const t = e.target.value.toLowerCase();
-        renderizar(todosProdutos.filter(p => p.descricao.toLowerCase().includes(t) || p.codigoBalanca.includes(t)));
+        const filtrados = todosProdutos.filter(p => p.descricao.toLowerCase().includes(t) || p.codigoBalanca.includes(t));
+        // A lista filtrada também mantém a ordem alfabética
+        renderizar(filtrados);
     };
 </script>
 
